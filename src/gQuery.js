@@ -114,8 +114,8 @@
         };
 
         $.fn = {
-            constructor: core.Z,
-            length: 0,
+            // constructor: core.Z,
+            // length: 0,
 
             // Because a collection acts like an array
             // copy over these useful array functions.
@@ -130,13 +130,13 @@
             },
         };
 
-        core.Z.prototype = Z.prototype = $.fn;
+        // core.Z.prototype = Z.prototype = $.fn;
 
         return $;
     }());
 
 
     window.gQuery = gQuery;
-    // 如果未定义 $ 则赋值为CORE,防止冲突
+    // 如果未定义 $ 则赋值为gQuery,防止冲突
     window.$ === undefined && (window.$ = gQuery);
 });

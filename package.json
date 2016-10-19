@@ -1,0 +1,11 @@
+{
+  "name": "gquery",
+  "version": "0.0.1",
+  "description": "like jquery api",
+  "main": "gQuery.js",
+  "scripts": {
+    "test": ""
+  },
+  "author": "xiepan",
+  "license": "MIT"
+}

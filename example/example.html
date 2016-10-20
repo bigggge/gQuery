@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Zepto</title>
-    <!--<script src="zepto.js"></script>-->
+    <!--<script src="../libs/jquery-3.1.0.js"></script>-->
     <script src="../src/gQuery.js"></script>
 
 </head>
@@ -21,9 +21,130 @@
 </body>
 
 <script>
-    console.log($('.qwe').size());
-    console.log($.trim(' 12 3 '));
-    var sort = $.fn.sort;
-    console.log([3, 1, 2].sort());
+
+    function log(msg) {
+        console.log(msg);
+    }
+
+    function logTitle(msg) {
+        log('---' + msg + ' 用法示例---')
+    }
+    //    console.log($('.qwe').size());
+    //    var sort = $.fn.sort;
+    //    console.log($('.qwe'));
+    //    console.log((typeof $('.qwe')));
+
+    // $.type 用法示例
+    // 下表为 typeof 操作符示例
+    //Value               Class      Type
+    //-------------------------------------
+    //"foo"               String     string
+    //new String("foo")   String     object
+    //1.2                 Number     number
+    //new Number(1.2)     Number     object
+    //true                Boolean    boolean
+    //new Boolean(true)   Boolean    object
+    //new Date()          Date       object
+    //new Error()         Error      object
+    //[1,2,3]             Array      object
+    //new Array(1, 2, 3)  Array      object
+    //new Function("")    Function   function
+    ///abc/g              RegExp     object (function in Nitro/V8)
+    //new RegExp("meow")  RegExp     object (function in Nitro/V8)
+    //{}                  Object     object
+    //new Object()        Object     object
+    logTitle('$.type');
+    log($.type('foo'));// string
+    log($.type(new String("foo")));// string
+    log($.type(1.2));// number
+    log($.type(new Number(1.2)));// number
+    log($.type(true));// boolean
+    log($.type(new Boolean(true)));// boolean
+    log($.type(new Date()));// data
+    log($.type(new Error()));// error
+    log($.type([1, 2, 3]));// array
+    log($.type(new Array(1, 2, 3)));// array
+    log($.type(new Function("")));// function
+    log($.type(/abc/g));// regexp
+    log($.type(new RegExp("meow")));// regexp
+    log($.type({}));// object
+    log($.type(new Object()));// object
+    log($.type(null));// null
+    var x;
+    log($.type(x));// undefined
+
+    log(Object.prototype.toString.call([1, 2])); // [object Array]
+    log([1, 2].toString()); // 1,2
+
+    // $.isFunction 用法示例
+    logTitle('$.isFunction');
+    log($.isFunction(new Function("")))
+    log($.isFunction(true));
+
+    // $.isWindow 用法示例
+    logTitle('$.isWindow');
+    log($.isWindow(window))
+    log($.isWindow(true))
+
+    // $.isPlainObject 用法示例
+    logTitle('$.isPlainObject');
+    log($.isPlainObject({}))
+    log($.isPlainObject(new Object()))
+    log($.isPlainObject(new Array()))
+
+    // $.isEmptyObject 用法示例
+    logTitle('$.isEmptyObject');
+    log($.isEmptyObject({}));
+    log($.isEmptyObject({x: 1}));
+
+    // $.isArray 用法示例
+    logTitle('$.isArray');
+    log($.isArray([]));
+    log($.isArray(new Array));
+
+    // $.isNumeric 用法示例
+    logTitle('$.isNumeric');
+    log($.isNumeric(1));
+    log($.isNumeric('1'));
+
+    // $.inArray 用法示例
+    logTitle('$.inArray');
+    log($.inArray("abc", ["bcd", "abc", "edf", "aaa"]));// =>1
+    log($.inArray("abc", ["bcd", "abc", "edf", "aaa"], 1));// =>1
+    log($.inArray("abc", ["bcd", "abc", "edf", "aaa"], 2));// =>-1
+
+    // $.trim 用法示例
+    logTitle('$.trim');
+    log($.trim("   12 3 "));
+
+    // $.each 用法示例
+    logTitle('$.each');
+    $.each(['a', 'b', 'c'], function (index, item) {
+        console.log('item %d is: %s', index, item)
+        console.log(this.toString());
+    });
+
+    var hash = {name: 'gQuery.js', author: 'bigggge'}
+    $.each(hash, function (key, value) {
+        console.log('%s: %s', key, value)
+        console.log(this.toString())
+    });
+
+    // size 用法示例
+    logTitle('size');
+    log($('.qwe').size());
+
+    //    var testCall = function (obj, callback) {
+    //        for (var i = 0; i < obj.length; i++) {
+    //            callback.call(obj, i);
+    //        }
+    //    };
+    //
+    //    testCall(["一、改变this的指向", "二、函数内部可以通过this调用"], function (index) {
+    //        //使用 call方式调用，可以直接通过this访问 call 的第一个参数传入的对象。
+    //        alert(this[index]);
+    //    });
+
+
 </script>
 </html>

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Zepto</title>
-    <!--<script src="../libs/jquery-3.1.0.js"></script>-->
+    <!--<script src="../libs/zepto.js"></script>-->
     <script src="../src/gQuery.js"></script>
 
 </head>
 
-<body>
-<h3 class="qwe">
+<body onclick="alert('123')">
+<h3 class="qwe" onclick="alert('12')">
     qwe
 </h3>
 <h3 class="qwe">
@@ -21,6 +21,11 @@
 </body>
 
 <script>
+
+    document.getElementsByClassName('qwe')[1].addEventListener('click'
+            , function () {
+                alert("dom2");
+            });
 
     function log(msg) {
         console.log(msg);
@@ -113,9 +118,28 @@
     log($.inArray("abc", ["bcd", "abc", "edf", "aaa"], 1));// =>1
     log($.inArray("abc", ["bcd", "abc", "edf", "aaa"], 2));// =>-1
 
+    // $.parseJSON 用法示例
+    logTitle('$.parseJSON');
+    log($.parseJSON('{"x": 1, "y": 2}'));
+    log($.parseJSON('[{"x": 1, "y": 2}, {"x": 1, "y": 2}]'));
+
     // $.trim 用法示例
     logTitle('$.trim');
     log($.trim("   12 3 "));
+    log($.trim(12));
+
+    // $.map 用法示例
+    logTitle('$.map');
+    var values = $.map([1, 2, 3, 4, 5], function (item, index) {
+        return [233].concat(item);
+    });
+    var values2 = $.map({"java": 1, "javascript": 2, "nodejs": 3}, function (item, index) {
+        if (item > 1) {
+            return item * item;
+        }
+    });
+    console.log(values);
+    console.log(values2);
 
     // $.each 用法示例
     logTitle('$.each');

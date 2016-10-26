@@ -255,7 +255,8 @@
             // If a function is given, call it when the DOM is ready
             else if (isFunction(selector)) return $(document).ready(selector)
             // If a Zepto collection is given, just return it
-            else if (zepto.isZ(selector)) return selector
+            else if (zepto.isZ(selector))
+                return selector
             else {
                 // normalize array if an array of nodes is given
                 if (isArray(selector)) dom = compact(selector)

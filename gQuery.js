@@ -29,14 +29,6 @@
     var printLog = false;
     var printNoSupportedLog = true;
 
-
-    /**
-     * @deprecated
-     */
-    function logNoSupportedOld(arg) {
-        console.log(arg + ' is not supported in ' + VERSION);
-    }
-
     /**
      * 更优雅的 log
      */
@@ -129,6 +121,7 @@
                     return false;
                 }
 
+                // 数组，或者length为0(空数组),length>0且最后一个元素存在
                 return type === "array" || length === 0 ||
                     (typeof length === "number" && length > 0 && ( length - 1 ) in obj);
 
@@ -137,7 +130,13 @@
             /**
              * Flatten any nested arrays
              * 优雅的数组降维
+             *
+             * [].concat([1,2],3)=>[1,2,3]
+             * concat方法的参数是一个元素，该元素会被直接插入到新数组中
+             * 如果参数是一个数组，该数组的各个元素将被插入到新数组中
+             *
              * @link http://www.cnblogs.com/front-end-ralph/p/4871332.html
+             * @link https://github.com/hanzichi/underscore-analysis/issues/10
              */
             function flatten(array) {
                 return array.length > 0 ? concat.apply([], array) : array;
@@ -247,13 +246,13 @@
                     // 是否是 简单选择器
                     isSimple = simpleSelectorRE.test(nameOnly);
 
-                log('querySelector: maybeID: ' + maybeID + ', maybeClass: ' + maybeClass + ', nameOnly: ' + nameOnly + ', isSimple: ' + isSimple);
+                // log('querySelector: maybeID: ' + maybeID + ', maybeClass: ' + maybeClass + ', nameOnly: ' + nameOnly + ', isSimple: ' + isSimple);
                 // Safari DocumentFragment doesn't have getElementById
                 return (element.getElementById && isSimple && maybeID) ?
                     // 如果是 id选择器
                     ( (found = element.getElementById(nameOnly)) ? [found] : [] ) :
                     //1Element元素节点 9Document文档节点 11DocumentFragment节点
-                    (element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11) ? [] :                    // 将 NodeList转成数组
+                    (element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11) ? [] :
                         // 将 NodeList转成数组
                         slice.call(
                             // DocumentFragment doesn't have getElementsByClassName/TagName
@@ -285,6 +284,8 @@
                     return selector;
                 } else if (isArray(selector)) {
                     dom = compact(selector);
+                } else if (isObject(selector)) {
+                    dom = [selector]
                 }
                 log('dom core.init:');
                 log(dom);
@@ -416,7 +417,12 @@
              */
             $.matches = core.matches;
 
-
+            /**
+             * class2type like:
+             *
+             * [object Array]:"array"
+             * [object Boolean]:"boolean"
+             */
             $.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function (i, name) {
                 class2type["[object " + name + "]"] = name.toLowerCase()
             });
@@ -528,7 +534,7 @@
 
                 },
 
-                //判断当前元素集合中的第一个元素是否符css选择器。
+                //判断当前元素集合中的第一个元素是否符合 css选择器。
                 is: function (selector) {
                     return this.length > 0 && core.matches(this[0], selector)
                 },
@@ -561,17 +567,49 @@
                     return $(nodes);
                 },
 
+                has: function (selector) {
+                    return this.filter(function () {
+                        return isObject(selector) ?
+                            $.contains(this, selector) :
+                            $(this).find(selector).size();
+                    })
+                },
+
+                // 从当前对象集合中获取给定索引值的元素
+                eq: function (index) {
+                    return index === -1 ? this.slice(index) : this.slice(index, +index + 1);
+                },
+
+                // 获取当前对象集合中的第一个元素
+                first: function () {
+                    var element = this[0];
+                    /**
+                     * 如果是 object,则 $(object)
+                     * @link core.init
+                     */
+                    //
+                    return element && !isObject(element) ? element : $(element);
+                },
+
+                // 获取对象集合中最后一个元素
+                last: function () {
+                    var element = this[this.length - 1];
+                    return element && !isObject(element) ? element : $(element);
+                },
+
+                find: function (selector) {
+                    var result, $this = this;
+                    if (!selector) result = $();
+                    //TODO
+                },
 
                 // 获取对象集合中每一个元素的属性值。返回值为 null或 undefined值得过滤掉
                 pluck: function (property) {
                     return $.map(this, function (el) {
                         return el[property]
                     })
-                },
-
-
-            }
-            ;
+                }
+            };
 
             core.G.prototype = $.fn;
 
@@ -583,4 +621,8 @@
     window.gQuery = gQuery;
     // 如果未定义 $ 则赋值为gQuery,防止冲突
     window.$ === undefined && (window.$ = gQuery);
+
+    !(function ($) {
+
+    })(gQuery);
 });

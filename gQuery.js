@@ -26,9 +26,11 @@
 })(this, function (window) {
 
     var VERSION = 'v0.2.2';
-    var printLog = false;
+    var printLog = true;
     var printNoSupportedLog = true;
 
+
+    // 全局 LOG 方法
     /**
      * 更优雅的 log
      */
@@ -46,6 +48,7 @@
         if (printLog) console.log.apply(console, arguments);
     }
 
+    // gQuery 核心模块
     // IIFE http://weizhifeng.net/immediately-invoked-function-expression.html
     var gQuery = (function () {
             var core = {};
@@ -68,7 +71,7 @@
                 tempParent = document.createElement('div');
 
             ////////////////////////
-            //function
+            // 核心模块方法
             ////////////////////////
 
             /**
@@ -142,7 +145,6 @@
                 return array.length > 0 ? concat.apply([], array) : array;
             }
 
-
             function funcArg(context, arg, idx, payload) {
                 return isFunction(arg) ? arg.call(context, idx, payload) : arg
             }
@@ -161,25 +163,48 @@
                 })
             };
 
-
             ////////////////////////
-            //core
+            // core 对象(core.init,core.G,core.isG,core.querySelector...)
             ////////////////////////
 
-            // core.G = function (dom, selector) {
-            //     return new G(dom, selector)
-            // };
-            //
-            // function G(dom, selector) {
-            //     var i, len = dom ? dom.length : 0;
-            //     for (i = 0; i < len; i++) this[i] = dom[i];
-            //     this.length = len;
-            //     this.selector = selector || '';
-            //     logNoSupported('function G(dom, selector) {...}:\n  length: ' + this.length + ' selector: ' + this.selector);
-            // }
+            // $ => core.init => core.G => dom [Array]
+            // TODO context is not used
+            $ = function (selector, context) {
+                return core.init(selector, context)
+            };
+
+            // 判断 selector 类型并处理，最后返回 DOM 元素或类数组
+            core.init = function (selector, context) {
+                var dom;
+                // 如果 selector 是一个字符串则进行 querySelector 选择器查询
+                if (typeof selector == 'string') {
+                    selector = selector.trim();
+
+                    if (context !== undefined) {
+                        //TODO
+                        logNoSupported('context');
+                    }
+                    // If it's a CSS selector, use it to select nodes.
+                    else dom = core.querySelector(document, selector)
+                } else if (core.isG(selector)) {
+                    return selector;
+                } else if (isArray(selector)) {
+                    dom = compact(selector);
+                } else if (isObject(selector)) {
+                    dom = [selector]
+                }
+                log('dom core.init:');
+                log(dom);
+                return core.G(dom, selector)
+            };
+
+
+            /**
+             * core.G 为 DOM 数组设置 $.fn 和 selector
+             */
             core.G = function (dom, selector) {
                 dom = dom || [];
-                // 通过给 dom 设置__proto__属性指向$.fn来达到继承$.fn上所有方法的目的
+                // 通过给 dom 设置__proto__属性指向 $.fn 来达到继承 $.fn 上所有方法的目的
                 dom.__proto__ = $.fn;
                 dom.selector = selector || '';
                 log('dom core.G: ');
@@ -191,8 +216,6 @@
              * 是否是 core.G gQuery对象
              */
             core.isG = function (object) {
-                log('isG:');
-                log(object instanceof core.G);
                 return object instanceof core.G
             };
             /**
@@ -233,7 +256,6 @@
 
             };
 
-
             // 查询选择器
             core.querySelector = function (element, selector) {
                 var found,
@@ -268,42 +290,9 @@
                         )
             };
 
-
-            core.init = function (selector, context) {
-                var dom;
-                if (typeof selector == 'string') {
-                    selector = selector.trim();
-
-                    if (context !== undefined) {
-                        //TODO
-                        logNoSupported('context');
-                    }
-                    // If it's a CSS selector, use it to select nodes.
-                    else dom = core.querySelector(document, selector)
-                } else if (core.isG(selector)) {
-                    return selector;
-                } else if (isArray(selector)) {
-                    dom = compact(selector);
-                } else if (isObject(selector)) {
-                    dom = [selector]
-                }
-                log('dom core.init:');
-                log(dom);
-                return core.G(dom, selector)
-                // return 'example';
-            };
-
-            ////////////////////////
-            // $
-            ////////////////////////
-
-            $ = function (selector, context) {
-                return core.init(selector, context)
-            };
-
             /**
              * TODO
-             * 检查父节点是否包含给定的dom节点，如果两者是相同的节点，则返回 false
+             * 检查父节点是否包含给定的 dom 节点，如果两者是相同的节点，则返回 false
              */
             $.contains = document.documentElement.contains ?
                 function (parent, node) {
@@ -622,7 +611,366 @@
     // 如果未定义 $ 则赋值为gQuery,防止冲突
     window.$ === undefined && (window.$ = gQuery);
 
+
+    /**
+     * ajax 核心模块
+     *
+     * http://caniuse.com/#search=xhr IE10+ support 93.11%
+     * http://www.ruanyifeng.com/blog/2012/09/xmlhttprequest_level_2.html
+     * @link https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
+     */
     !(function ($) {
+        var rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            scriptTypeRE = /^(?:text|application)\/javascript/i,
+            xmlTypeRE = /^(?:text|application)\/xml/i,
+            jsonType = 'application/json',
+            htmlType = 'text/html',
+            blankRE = /^\s*$/;
+
+        // 空函数, 用作空回调方法
+        function empty() {
+        }
+
+        /**
+         * ajax settings 默认设置 , 默认设置中声明的参数必然会生效
+         * others:
+         * url: 发送请求的地址,默认为当前地址
+         * data: 发送到服务器的数据；
+         *       如果是GET请求，它会自动被作为参数拼接到url上。
+         *       非String对象将通过 $.param 得到序列化字符串
+         * contentType
+         * mimeType
+         * dataType
+         * headers: Ajax请求中额外的 HTTP 信息头对象
+         * jsonp
+         * jsonpCallback
+         */
+        $.ajaxSettings = {
+            // 请求类型
+            type: 'GET',
+            method: this.type,
+            // {xhr, settings}
+            // 请求发出前调用，它接收 xhr 对象和 settings 作为参数对象。如果它返回 false ，请求将被取消
+            beforeSend: empty,
+            // {data, status, xhr}
+            // 请求成功之后调用。传入返回后的数据，以及包含成功代码的字符串。
+            success: empty,
+            // 请求出错时调用。 (超时，解析错误，或者状态码不在HTTP 2xx)
+            error: empty,
+            // 请求完成时调用，无论请求失败或成功。
+            complete: empty,
+            // 这个对象用于设置Ajax相关回调函数的上下文(this指向)
+            context: null,
+            // 请求将触发全局Ajax事件处理程序，设置为 false 将不会触发全局 Ajax 事件。
+            // global: true,
+            // 设置为一个函数，它返回XMLHttpRequest实例(或一个兼容的对象)
+            xhr: function () {
+                return new window.XMLHttpRequest()
+            },
+            // MIME types mapping
+            // IIS returns Javascript as "application/x-javascript"
+            // 从服务器请求的 MIME 类型，指定 dataType 值
+            accepts: {
+                script: 'text/javascript, application/javascript, application/x-javascript',
+                json: jsonType,
+                xml: 'application/xml, text/xml',
+                html: htmlType,
+                text: 'text/plain'
+            },
+            // Whether the request is to another domain
+            crossDomain: false,
+            // (默认： 0)：对Ajax请求设置一个非零的值指定一个默认的超时时间，以毫秒为单位
+            timeout: 0,
+            // Whether data should be serialized to string
+            processData: true,
+            // Whether the browser should be allowed to cache GET responses
+            cache: true,
+            //Used to handle the raw response data of XMLHttpRequest.
+            //This is a pre-filtering function to sanitize the response.
+            //The sanitized response should be returned
+            dataFilter: empty
+        };
+
+
+        // handle optional data/success arguments
+        function parseArguments(url, data, success, dataType) {
+            console.log('parseArgumentsStart');
+            console.log(url);
+            console.log(data);
+            console.log(success);
+            console.log(dataType);
+            // IF url, function(data, status, xhr){ ... }, [dataType]
+            // 如果 第二个参数是函数，则代表没有传 data
+            if ($.isFunction(data)) {
+                dataType = success; // dataType 为 第三个参数
+                success = data;     // success 为 第二个参数
+                data = undefined;   // 没有传 data
+                console.log('$.isFunction(data)');
+            }
+
+            // IF url, [dataType]
+            // 如果第二个参数不是函数
+            if (!$.isFunction(success)) {
+                console.log('!$.isFunction(success)');
+                dataType = success;
+                success = undefined;
+            }
+
+            console.log('parseArgumentsEnd');
+            console.log(url);
+            console.log(data);
+            console.log(success);
+            console.log(dataType);
+
+            return {
+                url: url,
+                data: data,
+                success: success,
+                dataType: dataType
+            }
+        }
+
+        /**
+         * 将 MIME 类型转成 DataType
+         * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+         * MIME 语法结构: type/subtype
+         * @param mime
+         * @returns {*|string|string}
+         */
+        function mimeToDataType(mime) {
+            if (mime) {
+                mime = mime.split(';', 2)[0]
+            }
+            return mime && ( mime == htmlType ? 'html' :
+                    mime == jsonType ? 'json' :
+                        scriptTypeRE.test(mime) ? 'script' :
+                        xmlTypeRE.test(mime) && 'xml' ) || 'text'
+        }
+
+        function appendQuery(url, query) {
+            if (query == '') return url;
+            return (url + '&' + query).replace(/[&?]{1,2}/, '?')
+        }
+
+        // serialize payload and append it to the URL for GET requests
+        function serializeData(options) {
+            if (options.processData && options.data && $.type(options.data) != "string") {
+                options.data = $.param(options.data, options.traditional);
+            }
+            if (options.data && (!options.type || options.type.toUpperCase() == 'GET' || 'jsonp' == options.dataType)) {
+                options.url = appendQuery(options.url, options.data);
+                options.data = undefined;
+            }
+        }
+
+        // call "beforeSend" that's like "send" but cancelable
+        function ajaxBeforeSend(xhr, settings) {
+            var context = settings.context;
+            console.log('settings.context');
+            console.log(settings.context);
+            if (settings.beforeSend.call(context, xhr, settings) === false) {
+                console.log('ajaxBeforeSend');
+                return false;
+            }
+            console.log('ajaxSend');
+        }
+
+        function ajaxSuccess(data, xhr, settings) {
+            var context = settings.context,
+                status = 'success';
+            settings.success.call(context, data, status, xhr);
+            ajaxComplete(status, xhr, settings)
+        }
+
+        // type: "timeout", "error", "abort"
+        function ajaxError(error, type, xhr, settings) {
+            var context = settings.context;
+            settings.error.call(context, xhr, type, error);
+            ajaxComplete(type, xhr, settings)
+        }
+
+        // status: "success", "timeout", "error", "abort"
+        function ajaxComplete(status, xhr, settings) {
+            var context = settings.context;
+            settings.complete.call(context, xhr, status);
+            // ajaxStop(settings)
+        }
+
+
+        $.ajax = function (options) {
+            var settings = options || {},
+                hashIndex,
+                headerName;
+
+            $.each($.ajaxSettings, function (key, value) { // TODO value
+                if (settings[key] === undefined) {
+                    settings[key] = $.ajaxSettings[key];
+                }
+            });
+
+            console.log('ajax start');
+
+            if (!settings.crossDomain) {
+                console.log('set crossDomain')
+            }
+
+            if (!settings.url) {
+                settings.url = window.location.toString();
+                console.log(settings.url);
+            }
+
+            if ((hashIndex = settings.url.indexOf('#')) > -1) {
+                settings.url = settings.url.slice(0, hashIndex);
+            }
+
+            console.log('serializeData');
+            console.log(settings.url);
+            console.log(settings.data);
+            serializeData(settings);
+            console.log(settings.url);
+            console.log(settings.data);
+
+            var xhr = settings.xhr(),
+                headers = {},
+                setHeader = function (name, value) {
+                    headers[name.toLowerCase()] = [name, value];
+                },
+                abortTimeout;
+
+            // 设置 HTTP 头给 headers 对象
+            if (settings.headers) {
+                for (headerName in settings.headers) {
+                    setHeader(headerName, settings.headers[headerName]);
+                }
+            }
+
+            // 设置 Content-Type
+            if (settings.contentType || (settings.contentType !== false && settings.data && settings.type.toUpperCase() != 'GET')) {
+                setHeader('Content-Type', settings.contentType || 'application/x-www-form-urlencoded')
+            }
+
+            if (settings.method) {
+                settings.type = settings.method;
+            }
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    xhr.onreadystatechange = empty;
+                    clearTimeout(abortTimeout);
+                    var result;
+                    if (xhr.status >= 200 && xhr.status < 400) {
+                        var mime = xhr.getResponseHeader('content-type');
+                        console.log(mime);
+                        var dataType = mimeToDataType(mime);
+                        /**
+                         * ""               字符串(默认值)
+                         * "arraybuffer"    ArrayBuffer
+                         * "blob"           Blob
+                         * "document"       Document
+                         * "json"           JavaScript 对象，解析自服务器传递回来的JSON 字符串。
+                         * "text"           字符串
+                         */
+                        console.log(xhr.responseType);
+                        if (xhr.responseType == 'arraybuffer' || xhr.responseType == 'blob') {
+                            // 响应实体的类型由 responseType 来指定，
+                            // 可以是 ArrayBuffer， Blob， Document， JavaScript 对象 (即 "json")， 或者是字符串。
+                            // 如果请求未完成或失败，则该值为 null。
+                            result = xhr.response;
+                        }
+                        else {
+                            // 此次请求的响应为文本，或是当请求未成功或还未发送时为 null。
+                            result = xhr.responseText;
+                        }
+
+                        if (dataType == 'json') {
+                            result = blankRE.test(result) ? null : $.parseJSON(result)
+                        }
+                        ajaxSuccess(result, xhr, settings);
+                    }
+                    else {
+                        ajaxError(xhr.statusText || null, xhr.status ? 'error' : 'abort', xhr, settings)
+                    }
+                }
+            }
+            ;
+
+            // 如果 ajaxBeforeSend 返回 false 则终止请求
+            if (ajaxBeforeSend(xhr, settings) === false) {
+                // 如果请求已经被发送,则立刻中止请求
+                xhr.abort();
+                ajaxError(null, 'abort', xhr, settings);
+                return xhr
+            }
+            /**
+             * 是否异步
+             * 选择同步请求还是异步请求 ？
+             *
+             * @link https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
+             */
+            var async = 'async' in settings ? settings.async : true;
+
+            // http://stackoverflow.com/questions/1652178/basic-authentication-with-xmlhttprequest
+            xhr.open(settings.type, settings.url, async, settings.username, settings.password);
+
+            // 调用 setRequestHeader() 方法设置 HTTP 请求头
+            for (headerName in headers) {
+                xhr.setRequestHeader.apply(xhr, headers[headerName])
+            }
+
+            // 请求超时
+            if (settings.timeout > 0) abortTimeout = setTimeout(function () {
+                xhr.onreadystatechange = empty
+                xhr.abort()
+                ajaxError(null, 'timeout', xhr, settings)
+            }, settings.timeout);
+
+            xhr.send(settings.data ? settings.data : null);
+            return xhr;
+        };
+
+        $.get = function (/* url, [data], [function(data, status, xhr){ ... }], [dataType] */) {
+            return $.ajax(parseArguments.apply(null, arguments))
+        };
+
+        $.post = function (/* url, data, success, dataType */) {
+            var options = parseArguments.apply(null, arguments);
+            options.type = 'POST';
+            return $.ajax(options)
+        };
+
+        $.getJSON = function (/* url, data, success */) {
+            var options = parseArguments.apply(null, arguments)
+            options.dataType = 'json';
+            return $.ajax(options)
+        };
+
+
+        function serialize(params, obj, traditional, scope) {
+            var type, array = $.isArray(obj), hash = $.isPlainObject(obj)
+            $.each(obj, function (key, value) {
+                type = $.type(value);
+                if (scope) key = traditional ? scope :
+                scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']';
+                // handle data in serializeArray() format
+                if (!scope && array) params.add(value.name, value.value);
+                // recurse into nested objects
+                else if (type == "array" || (!traditional && type == "object"))
+                    serialize(params, value, traditional, key);
+                else params.add(key, value)
+            })
+        }
+
+        $.param = function (obj, traditional) {
+            var params = [];
+            params.add = function (key, value) {
+                if ($.isFunction(value)) value = value();
+                if (value == null) value = ""
+                this.push(escape(key) + '=' + escape(value))
+            };
+            serialize(params, obj, traditional);
+            return params.join('&').replace(/%20/g, '+')
+        }
+
 
     })(gQuery);
 });

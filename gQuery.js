@@ -25,7 +25,7 @@
     }
 })(this, function (window) {
 
-    var VERSION = 'v0.2.2';
+    var VERSION = 'v0.3.1';
     var printLog = true;
     var printNoSupportedLog = true;
 
@@ -621,6 +621,7 @@
      */
     !(function ($) {
         var rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            // http://stackoverflow.com/questions/21098865/text-javascript-vs-application-javascript
             scriptTypeRE = /^(?:text|application)\/javascript/i,
             xmlTypeRE = /^(?:text|application)\/xml/i,
             jsonType = 'application/json',
@@ -638,9 +639,9 @@
          * data: 发送到服务器的数据；
          *       如果是GET请求，它会自动被作为参数拼接到url上。
          *       非String对象将通过 $.param 得到序列化字符串
-         * contentType
-         * mimeType
-         * dataType
+         * contentType (默认： “application/x-www-form-urlencoded”)： 发送信息至服务器时内容编码类型。 (这也可以通过设置 headers)。通过设置 false 跳过设置默认值
+         * mimeType 覆盖响应的MIME类型
+         * dataType 预期服务器返回的数据类型(“json”, “jsonp”, “xml”, “html”, or “text”)
          * headers: Ajax请求中额外的 HTTP 信息头对象
          * jsonp
          * jsonpCallback
@@ -681,7 +682,7 @@
             crossDomain: false,
             // (默认： 0)：对Ajax请求设置一个非零的值指定一个默认的超时时间，以毫秒为单位
             timeout: 0,
-            // Whether data should be serialized to string
+            // 对于非 Get 请求。是否自动将 data 转换为字符串
             processData: true,
             // Whether the browser should be allowed to cache GET responses
             cache: true,
@@ -796,7 +797,6 @@
             // ajaxStop(settings)
         }
 
-
         $.ajax = function (options) {
             var settings = options || {},
                 hashIndex,
@@ -808,34 +808,66 @@
                 }
             });
 
-            console.log('ajax start');
+            // console.log('ajax start');
 
             if (!settings.crossDomain) {
                 console.log('set crossDomain')
             }
 
+            // 未设置 url 则取当前地址
             if (!settings.url) {
                 settings.url = window.location.toString();
                 console.log(settings.url);
             }
 
+            // 截取 #
             if ((hashIndex = settings.url.indexOf('#')) > -1) {
                 settings.url = settings.url.slice(0, hashIndex);
             }
 
-            console.log('serializeData');
+            console.log('serializeData:Start');
             console.log(settings.url);
             console.log(settings.data);
+            // TODO
             serializeData(settings);
+            console.log('serializeData:End');
             console.log(settings.url);
             console.log(settings.data);
+
+            var dataType = settings.dataType;
+
+            // 如果禁止缓存则添加
+            // HTTP CACHE : https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching?hl=zh-cn
+            // http://stackoverflow.com/questions/49547/how-to-control-web-page-caching-across-all-browsers
+            if (settings.cache === false) {
+                // 添加时间戳 http://localhost:8001/service?_=1482807596778
+                settings.url = appendQuery(settings.url, '_=' + Date.now());
+            }
 
             var xhr = settings.xhr(),
                 headers = {},
                 setHeader = function (name, value) {
                     headers[name.toLowerCase()] = [name, value];
                 },
-                abortTimeout;
+                abortTimeout,
+                mime = settings.accepts[dataType];
+
+            // TODO this can prevent CSRF attacks because this header cannot be added to the AJAX request cross domain
+            // TODO without the consent of the server via CORS.
+            // https://github.com/angular/angular.js/issues/1004
+            if (!settings.crossDomain) {
+                setHeader('X-Requested-With', 'XMLHttpRequest')
+            }
+
+            // 能够接受的回应内容类型（Content-Types）
+            setHeader('Accept', mime || '*/*');
+
+            if (mime = settings.mimeType || mime) {
+                if (mime.indexOf(',') > -1) mime = mime.split(',', 2)[0];
+                // https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest#overrideMimeType
+                // https://segmentfault.com/a/1190000004322487#articleHeader6
+                xhr.overrideMimeType && xhr.overrideMimeType(mime)
+            }
 
             // 设置 HTTP 头给 headers 对象
             if (settings.headers) {
@@ -884,6 +916,8 @@
 
                         if (dataType == 'json') {
                             result = blankRE.test(result) ? null : $.parseJSON(result)
+                        } else if (dataType == 'xml') {
+                            result = xhr.responseXML;
                         }
                         ajaxSuccess(result, xhr, settings);
                     }
@@ -904,6 +938,7 @@
             /**
              * 是否异步
              * 选择同步请求还是异步请求 ？
+             * 当您使用 async=false 时，请不要编写 onreadystatechange 函数 - 把代码放到 send() 语句后面即可
              *
              * @link https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
              */
@@ -919,8 +954,8 @@
 
             // 请求超时
             if (settings.timeout > 0) abortTimeout = setTimeout(function () {
-                xhr.onreadystatechange = empty
-                xhr.abort()
+                xhr.onreadystatechange = empty;
+                xhr.abort();
                 ajaxError(null, 'timeout', xhr, settings)
             }, settings.timeout);
 
@@ -939,14 +974,14 @@
         };
 
         $.getJSON = function (/* url, data, success */) {
-            var options = parseArguments.apply(null, arguments)
+            var options = parseArguments.apply(null, arguments);
             options.dataType = 'json';
             return $.ajax(options)
         };
 
-
+        // TODO
         function serialize(params, obj, traditional, scope) {
-            var type, array = $.isArray(obj), hash = $.isPlainObject(obj)
+            var type, array = $.isArray(obj), hash = $.isPlainObject(obj);
             $.each(obj, function (key, value) {
                 type = $.type(value);
                 if (scope) key = traditional ? scope :
@@ -960,6 +995,7 @@
             })
         }
 
+        // TODO
         $.param = function (obj, traditional) {
             var params = [];
             params.add = function (key, value) {

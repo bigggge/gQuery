@@ -1,22 +1,40 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>Mocha</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="mocha.css" />
-  </head>
-  <body>
-    <div id="mocha"></div>
+    <link rel="stylesheet" href="mocha.css"/>
+</head>
+<body>
+<ul id="parents" style="display: none">
+    <li id="li1">
+        <ul id="nested">
+            <li id="li2">one</li>
+            <li>two</li>
+            <li>three</li>
+        </ul>
+        <ul>
+            <li></li>
+        </ul>
+    </li>
+</ul>
+<div id="empty">empty</div>
 
-    <script src="../src/gQuery.js"></script>
-    <script src="../node_modules/mocha/mocha.js"></script>
-    <script src='../node_modules/chai/chai.js'></script>
-    <script>mocha.setup('bdd');</script>
-    <script src="core.test.js"></script>
-    <script>
-        if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
-        else { mocha.run(); }
-    </script>
-  </body>
+<div id="mocha"></div>
+
+<script src="../src/gQuery.js"></script>
+<script src="../node_modules/mocha/mocha.js"></script>
+<script src='../node_modules/chai/chai.js'></script>
+<script>mocha.ui('bdd');</script>
+<script src="core.test.js"></script>
+<script>
+    //    if (window.mochaPhantomJS) {
+    //        mochaPhantomJS.run();
+    //    }
+    //    else {
+    mocha.run();
+    //    }
+</script>
+</body>
 </html>

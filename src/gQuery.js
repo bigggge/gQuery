@@ -26,7 +26,7 @@
 })(this, function (window) {
 
     var VERSION = 'v0.3.1';
-    var printLog = true;
+    var printLog = false;
     var printNoSupportedLog = true;
 
 
@@ -124,7 +124,7 @@
                     return false;
                 }
 
-                // 数组，或者length为0(空数组),length>0且最后一个元素存在
+                // 数组，或者length为0(空数组),length > 0且最后一个元素存在
                 return type === "array" || length === 0 ||
                     (typeof length === "number" && length > 0 && ( length - 1 ) in obj);
 
@@ -290,14 +290,52 @@
                         )
             };
 
+            function extend(target, source, deep) {
+                for (var key in source)
+                if (source.hasOwnProperty(key)) {
+                    // 深复制且属性值是对象或者数组
+                    if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
+                        if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
+                            target[key] = {}
+                        }
+                        if (isArray(source[key]) && !isArray(target[key])) {
+                            target[key] = []
+                        }
+                        // 递归
+                        extend(target[key], source[key], deep)
+                        // 浅复制
+                    } else if (source[key] !== undefined) {
+                        target[key] = source[key]
+                    }
+                }
+            }
+
+            $.extend = function (target) {
+                // slice() 得到sources数组，即取第二个参数及后面的参数
+                var deep, sources = slice.call(arguments, 1)
+                if (typeof target == 'boolean') {
+                    deep = target;
+                    // shift() 得到target，即从sources数组中获得第一个元素并删除
+                    target = sources.shift()
+                }
+                sources.forEach(function (source) {
+                    extend(target, source, deep)
+                });
+                return target
+            };
+
             /**
-             * TODO
              * 检查父节点是否包含给定的 dom 节点，如果两者是相同的节点，则返回 false
              */
             $.contains = document.documentElement.contains ?
                 function (parent, node) {
                     return parent !== node && parent.contains(node)
-                } : log("Error: Your browser not support '$.contains' method");
+                } :
+                function (parent, node) {
+                    while (node && (node = node.parentNode))
+                        if (node === parent) return true
+                    return false
+                }
 
             /**
              * 获取JavaScript 对象的类型。可能的类型有：
@@ -365,6 +403,9 @@
                 return str == null ? "" : String.prototype.trim.call(str)
             };
 
+            /**
+             * 遍历集合中的元素，返回通过迭代函数的全部结果
+             */
             $.map = function (elements, callback) {
                 var value, values = [], i, key;
                 if (likeArray(elements)) {
@@ -386,6 +427,9 @@
                 return flatten(values);
             };
 
+            /**
+             * 遍历数组元素或以key-value值对方式遍历对象。回调函数返回 false 时停止遍历
+             */
             $.each = function (elements, callback) {
                 var i, key;
                 if (likeArray(elements)) {
@@ -405,10 +449,6 @@
 
                 return elements
             };
-            /**
-             * 如果当前元素能被指定的css选择器查找到,则返回true,否则返回false
-             */
-            $.matches = core.matches;
 
             /**
              * class2type like:

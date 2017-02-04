@@ -1,27 +1,24 @@
+// http://chaijs.com/
+// http://www.jianshu.com/p/f200a75a15d2
 var should = chai.should();
 var expect = chai.expect;
 
 var $ = window.gQuery
 
-// $.camelCase       × 废弃 将一组字符串变成“骆驼”命名法的新字符串
-// $.contains        × 未测试
+// $.contains        √
 // $.each            √
-// $.extend          × 未测试
-// $.fn              × 未测试
-// $.grep            × 废弃 获取一个新数组只包含回调函数中返回true的项 可使用原生filter
-// $.inArray         √ 借助于indexOf方法
-// $.isArray         √ 原生方法
-// $.isFunction      √ 借助于type方法
+// $.extend          √
+// $.fn              √
+// $.inArray         √   借助于indexOf方法
+// $.isArray         √   原生方法
+// $.isFunction      √   借助于type方法
 // $.isNumeric       √
 // $.isPlainObject   √
 // $.isWindow        √
 // $.map             √
-// $.noop            × 废弃 作用：引用一个空函数
-// $.parseJSON       √ 借助于JSON.parse
+// $.parseJSON       √    借助于JSON.parse
 // $.trim            √
 // $.type            √
-
-// $.matches         × 未测试
 // $.isEmptyObject   √
 
 describe('CORE', function () {
@@ -120,7 +117,7 @@ describe('CORE', function () {
             expect($.trim(' 12 3 ')).to.equal('12 3')
             expect($.trim(123)).to.equal('123')
         })
-    })
+    });
 
     describe('$.map()', function () {
         it("map", function () {
@@ -135,7 +132,7 @@ describe('CORE', function () {
                 })
             ).to.eql([11, 12, 13])
         })
-    })
+    });
 
     describe('$.each()', function () {
         it("each", function () {
@@ -153,6 +150,38 @@ describe('CORE', function () {
             });
             indexes.should.eql(['name', 'author'])
             items.should.eql(['gQuery.js', 'bigggge'])
+        })
+    });
+
+    describe('$.contains()', function () {
+        it('contains', function () {
+            var el1 = $('#li1')
+            expect($.contains(el1.get(0), $('#li2').get(0))).to.equal(true);
+            expect($.contains(el1.get(0), $('#parents').get(0))).to.equal(false);
+            expect($.contains(el1.get(0), el1.get(0))).to.equal(false);
+        })
+    })
+
+    describe('$.fn()', function () {
+        it('fn', function () {
+            $.fn.empty = function () {
+                return this.each(function () {
+                    this.innerHTML = ''
+                })
+            }
+            var $empty = $('#empty');
+            $empty.empty();
+            expect($empty.innerHTML).to.be.empty;
+        })
+    })
+
+    describe('$.extend()', function () {
+        it('extend', function () {
+            var target = {one: 'one'},
+                source = {two: 'two', three: [1, 2]},
+                source2 = {x: "x"}
+            expect($.extend(true, target, source, source2)).to.eql({one: 'one', two: 'two', three: [1, 2], x: 'x'})
+
         })
     })
 })

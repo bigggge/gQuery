@@ -334,9 +334,14 @@
             /**
              * 如果该值为有限数值或一个字符串表示的数字，则返回ture
              */
-            $.isNumeric = function () {
-                logNoSupported('isNumeric');
-            };
+            $.isNumeric = function (val) {
+                var num = Number(val), type = typeof val;
+                return val != null
+                    && type != 'boolean'
+                    && (type != 'string' || val.length)
+                    && !isNaN(num)
+                    && isFinite(num) || false
+            }
 
             /**
              * 返回给定元素能找在数组中找到的第一个索引值
@@ -377,7 +382,6 @@
                         }
                     }
                 }
-                log('Before flatten: ');
                 log(values);
                 return flatten(values);
             };

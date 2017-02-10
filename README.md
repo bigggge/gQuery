@@ -2,15 +2,16 @@
 
 >一个拥有与 jQuery 类似 API 的 DOM+AJAX 操作库
 
-参考了
+目的在于学习
 [Zepto.js](https://github.com/madrobby/zepto)和
 [jQuery](https://github.com/jquery/jquery)
-的实现
+的源代码
 
-[CHANGELOG](CHANGELOG.md)
+## API
 
+[API](API.md)
 
-To run the tests
+## Test
 
 ```
 brew install phantomjs
@@ -18,6 +19,8 @@ npm install
 npm test
 ```
 
+## CHANGELOG
 
+[CHANGELOG](CHANGELOG.md)
 
 

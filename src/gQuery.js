@@ -3,7 +3,7 @@
  *
  * 参考 jQuery.js 和 zepto.js
  *
- * v 0.2.2
+ * v 0.5.0
  *
  * Created by xiepan on 2016/10/19 11:13.
  */
@@ -25,7 +25,7 @@
     }
 })(this, function (window) {
 
-    var VERSION = 'v0.3.1';
+    var VERSION = 'v0.5.0';
     var printLog = false;
     var printNoSupportedLog = true;
 
@@ -292,22 +292,22 @@
 
             function extend(target, source, deep) {
                 for (var key in source)
-                if (source.hasOwnProperty(key)) {
-                    // 深复制且属性值是对象或者数组
-                    if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
-                        if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
-                            target[key] = {}
+                    if (source.hasOwnProperty(key)) {
+                        // 深复制且属性值是对象或者数组
+                        if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
+                            if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
+                                target[key] = {}
+                            }
+                            if (isArray(source[key]) && !isArray(target[key])) {
+                                target[key] = []
+                            }
+                            // 递归
+                            extend(target[key], source[key], deep)
+                            // 浅复制
+                        } else if (source[key] !== undefined) {
+                            target[key] = source[key]
                         }
-                        if (isArray(source[key]) && !isArray(target[key])) {
-                            target[key] = []
-                        }
-                        // 递归
-                        extend(target[key], source[key], deep)
-                        // 浅复制
-                    } else if (source[key] !== undefined) {
-                        target[key] = source[key]
                     }
-                }
             }
 
             $.extend = function (target) {
@@ -471,7 +471,10 @@
 
                 // Because a collection acts like an array
                 // copy over these useful array functions.
+
+                // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
                 forEach: emptyArray.forEach,
+                // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce
                 reduce: emptyArray.reduce,
                 push: emptyArray.push,
                 sort: emptyArray.sort,
@@ -535,6 +538,11 @@
                         return callback.call(element, i, element) !== false;
                     });
                     return this;
+                },
+                empty: function () {
+                    return this.each(function () {
+                        this.innerHTML = ''
+                    })
                 },
                 // 从其父节点中删除当前集合中的元素
                 // @link https://developer.mozilla.org/zh-CN/docs/Web/API/Node/removeChild

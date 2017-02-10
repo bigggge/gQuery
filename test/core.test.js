@@ -1,188 +1,204 @@
-// http://chaijs.com/
-// http://www.jianshu.com/p/f200a75a15d2
-var should = chai.should();
-var expect = chai.expect;
+/**
+ * core.test.js
+ *
+ * Created by xiepan on 2017/2/10 上午9:26.
+ */
 
-var $ = window.gQuery
+// add
+// addClass
+// after
+// append
+// appendTo
+// attr
+// before
+// children
+// clone
+// closest
+// concat
+// contents
+// css
+// data
+// each          √
+// empty         √
+// eq            √
+// filter        ×
+// find          ×
+// first         √
+// forEach       √
+// get           √
+// has           ×
+// hasClass
+// height
+// hide
+// html
+// index
+// indexOf       √
+// insertAfter
+// insertBefore
+// is            √
+// last          √
+// map           ×
+// next
+// not           ×
+// offset
+// offsetParent
+// parent
+// parents
+// pluck         √
+// position
+// prepend
+// prependTo
+// prev
+// prop
+// push          √
 
-// $.contains        √
-// $.each            √
-// $.extend          √
-// $.fn              √
-// $.inArray         √   借助于indexOf方法
-// $.isArray         √   原生方法
-// $.isFunction      √   借助于type方法
-// $.isNumeric       √
-// $.isPlainObject   √
-// $.isWindow        √
-// $.map             √
-// $.parseJSON       √    借助于JSON.parse
-// $.trim            √
-// $.type            √
-// $.isEmptyObject   √
 
 describe('CORE', function () {
-    describe('$.type()', function () {
-        it("string", function () {
-            $.type('string').should.equal('string');
 
-        });
-        it("number", function () {
-            $.type(1.2).should.equal('number');
-            $.type(Number(1.2)).should.equal('number');
-        });
-        it("boolean", function () {
-            $.type(true).should.equal('boolean')
-            $.type(Boolean(false)).should.equal('boolean')
-        })
-        it("others", function () {
-            var undefined
-            $.type(new Date()).should.equal('date')
-            $.type(new Error()).should.equal('error')
-            $.type([]).should.equal('array')
-            $.type(Function()).should.equal('function')
-            $.type(new RegExp('ggg')).should.equal('regexp')
-            $.type(/abc/g).should.equal('regexp')
-            $.type({}).should.equal('object')
-            $.type(null).should.equal('null')
-            $.type(undefined).should.equal('undefined')
-        })
-    });
-
-    describe('$.isFunction()', function () {
-        it("isFunction", function () {
-            expect($.isFunction(Function())).to.equal(true)
-            $.isFunction(true).should.equal(false)
-        })
-    });
-
-    describe('$.isWindow()', function () {
-        it("isWindow", function () {
-            expect($.isWindow(window)).to.equal(true)
-        })
-    });
-
-    describe('$.isPlainObject()', function () {
-        it("isPlainObject", function () {
-            expect($.isPlainObject({})).to.equal(true)
-            expect($.isPlainObject(new Object())).to.equal(true)
-            expect($.isPlainObject({a: 1})).to.equal(true)
-            expect($.isPlainObject([])).to.equal(false)
-            expect($.isPlainObject(Array)).to.equal(false)
-        })
-    });
-
-    describe('$.isEmptyObject()', function () {
-        it("isEmptyObject", function () {
-            expect($.isEmptyObject({})).to.equal(true)
-            expect($.isEmptyObject({a: 1})).to.equal(false)
-        })
-    });
-
-    describe('$.isArray()', function () {
-        it("isArray", function () {
-            expect($.isArray([])).to.equal(true)
-            expect($.isArray([1, 2, 3])).to.equal(true)
-            expect($.isArray(Array())).to.equal(true)
-        })
-    });
-
-    describe('$.isNumeric()', function () {
-        it("isNumeric", function () {
-            expect($.isNumeric(1)).to.equal(true)
-            expect($.isNumeric('1')).to.equal(true)
-            expect($.isNumeric('a')).to.equal(false)
-        })
-    });
-
-    describe('$.inArray()', function () {
-        it("inArray", function () {
-            expect($.inArray("abc", ["bcd", "abc", "edf", "aaa"])).to.equal(1)
-            expect($.inArray("abc", ["bcd", "abc", "edf", "aaa"], 1)).to.equal(1)
-            expect($.inArray("abc", ["bcd", "abc", "edf", "aaa"], 2)).to.equal(-1)
-        })
-    });
-
-    describe('$.parseJSON()', function () {
-        it("parseJSON", function () {
-            expect($.parseJSON('{"x": 1, "y": 2}'))
-                .to.deep.equal({x: 1, y: 2})
-            expect($.parseJSON('[{"x": 1, "y": 2}, {"x": 1, "y": 2}]'))
-                .to.deep.equal([{x: 1, y: 2}, {x: 1, y: 2}])
-        })
-    });
-
-    describe('$.trim()', function () {
-        it("trim", function () {
-            expect($.trim(' 12 3 ')).to.equal('12 3')
-            expect($.trim(123)).to.equal('123')
-        })
-    });
-
-    describe('$.map()', function () {
-        it("map", function () {
-            expect(
-                $.map([1, 2, 3], function (item, index) {
-                    return item + 10;
-                })
-            ).to.eql([11, 12, 13])
-            expect(
-                $.map({a: 1, b: 2, c: 3}, function (item, index) {
-                    return item + 10;
-                })
-            ).to.eql([11, 12, 13])
-        })
-    });
-
-    describe('$.each()', function () {
+    describe('each', function () {
         it("each", function () {
-            var arr = [];
-            $.each(['a', 'b', 'c'], function (index, item) {
-                arr.push(index + item);
-            });
-            arr.should.eql(['0a', '1b', '2c'])
-
-            var indexes = [];
-            var items = [];
-            $.each({name: 'gQuery.js', author: 'bigggge'}, function (index, item) {
-                indexes.push(index);
-                items.push(item);
-            });
-            indexes.should.eql(['name', 'author'])
-            items.should.eql(['gQuery.js', 'bigggge'])
+            var index
+            $('#eachtest > *').each(function (idx, el) {
+                index = idx
+                expect(el).to.equal(this)
+            })
+            expect(index).to.equal(2)
         })
     });
 
-    describe('$.contains()', function () {
-        it('contains', function () {
-            var el1 = $('#li1')
-            expect($.contains(el1.get(0), $('#li2').get(0))).to.equal(true);
-            expect($.contains(el1.get(0), $('#parents').get(0))).to.equal(false);
-            expect($.contains(el1.get(0), el1.get(0))).to.equal(false);
+    describe('empty', function () {
+        it('empty', function () {
+            $('#emptytest').empty()
+
+            expect(document.getElementById('empty1')).to.be.null
+            expect(document.getElementById('empty2')).to.be.null
+            expect(document.getElementById('empty3')).to.be.null
         })
     })
 
-    describe('$.fn()', function () {
-        it('fn', function () {
-            $.fn.empty = function () {
-                return this.each(function () {
-                    this.innerHTML = ''
-                })
-            }
-            var $empty = $('#empty');
-            $empty.empty();
-            expect($empty.innerHTML).to.be.empty;
+    describe('eq', function () {
+        it('eq', function () {
+            expect($('#eqtest li').eq(-1)[0].className).to.equal('eq2')// last item
+            expect($('#eqtest li').eq(0)[0].tagName.toLowerCase()).to.equal('li')// first item
+            expect($('#eqtest li').eq(1)[0].className).to.equal('eq2')
         })
     })
 
-    describe('$.extend()', function () {
-        it('extend', function () {
-            var target = {one: 'one'},
-                source = {two: 'two', three: [1, 2]},
-                source2 = {x: "x"}
-            expect($.extend(true, target, source, source2)).to.eql({one: 'one', two: 'two', three: [1, 2], x: 'x'})
+    describe('first', function () {
+        it('first', function () {
+            expect($('#nested li').first().get(0).textContent).to.equal('one')
+            expect($('#nested li').first().length).to.equal(1)
+        })
+    })
+    describe('forEach', function () {
+        it('forEach', function () {
+            var index
+            $('#nested li').forEach(function (el, idx, array) {
+                index = idx
+                expect(el.tagName.toLowerCase()).to.equal('li')
+            })
+            expect(index).to.equal(2)
+        })
+    })
+
+    describe('get', function () {
+        it('get', function () {
+            expect($('#nested li').get().length).to.equal(3)
+            expect($('#nested li').get(1).textContent).to.equal('two')
+            expect($('#nested li').get(2).textContent).to.equal('three')
+        })
+    })
+
+    // describe('has', function () {
+    //     it('has', function () {
+    //         console.log($('#nested').has('li[id=li2]'))
+    //     })
+    // })
+
+    describe('indexOf', function () {
+        it('indexOf', function () {
+            //TODO nativemethod
+        })
+    })
+
+    describe('is', function () {
+        it('is', function () {
+            expect($('#nested li').is('li[id=li2]')).to.equal(true)
+            expect($('#nested li').is('li')).to.equal(true)
+            expect($('#nested li').is('ul')).to.equal(false)
+        })
+    })
+
+    describe('last', function () {
+        it('last', function () {
+            expect($('#nested li').last().get(0).textContent).to.equal('three')
+            expect($('#nested li').last().length).to.equal(1)
+        })
+    })
+
+    describe('pluck', function () {
+        it('pluck', function () {
+            expect($('#nested li').last().get(0).textContent).to.equal('three')
+            expect($('#nested li').last().length).to.equal(1)
+        })
+    })
+
+// ready         √
+// reduce        √
+// remove        √
+// removeAttr
+// removeClass
+// removeProp
+// replaceWith
+// scrollLeft
+// scrollTop
+// show
+// siblings
+// size          √
+// slice         √
+// text
+// toggle
+// toggleClass
+// unwrap
+// val
+// width
+// wrap
+// wrapAll
+// wrapInner
+
+    describe('ready', function () {
+        it('ready', function () {
+
+        })
+    })
+
+    describe('reduce', function () {
+        it('reduce', function () {
+            $('#nested li').reduce(function (accumulator, currentValue,
+                                             currentIndex, array) {
+                console.log(accumulator)
+                console.log(currentValue)
+                console.log(currentIndex)
+                console.log(array)
+            })
+        })
+    })
+
+    describe('remove', function () {
+        it('remove', function () {
+
+        })
+    })
+
+    describe('size', function () {
+        it('size', function () {
+
+        })
+    })
+
+    describe('slice', function () {
+        it('slice', function () {
 
         })
     })
 })
-

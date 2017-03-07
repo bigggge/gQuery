@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/bigggge/gQuery.svg?branch=master)](https://travis-ci.org/bigggge/gQuery)
+[![codecov](https://codecov.io/gh/bigggge/gQuery/branch/master/graph/badge.svg)](https://codecov.io/gh/bigggge/gQuery)
 
 # gQuery
 

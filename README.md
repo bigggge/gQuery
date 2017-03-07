@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bigggge/gQuery.svg?branch=master)](https://travis-ci.org/bigggge/gQuery)
+
 # gQuery
 
 >一个拥有与 jQuery 类似 API 的 DOM+AJAX 操作库

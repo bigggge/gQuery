@@ -6,7 +6,7 @@
   "author": "xiepan",
   "license": "MIT",
   "scripts": {
-    "test": "./node_modules/.bin/mocha-phantomjs -p /usr/local/bin/phantomjs test/index.html",
+    "test": "./node_modules/.bin/mocha-phantomjs -p /usr/local/bin/phantomjs test/index.html"
   },
   "devDependencies": {
     "chai": "^3.5.0",

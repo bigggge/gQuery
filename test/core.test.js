@@ -174,25 +174,27 @@ describe('CORE', function () {
 
     describe('reduce', function () {
         it('reduce', function () {
-            $('#nested li').reduce(function (accumulator, currentValue,
-                                             currentIndex, array) {
-                console.log(accumulator)
-                console.log(currentValue)
-                console.log(currentIndex)
-                console.log(array)
-            })
+            // $('#nested li').reduce(function (accumulator, currentValue,
+            //                                  currentIndex, array) {
+            //     console.log(accumulator)
+            //     console.log(currentValue)
+            //     console.log(currentIndex)
+            //     console.log(array)
+            // })
         })
     })
 
     describe('remove', function () {
         it('remove', function () {
-
+            expect($('#removetest').get()).to.not.be.null
+            $('#removetest').remove()
+            expect($('#removetest').get()).to.be.empty
         })
     })
 
     describe('size', function () {
         it('size', function () {
-
+            expect($('#nested li').size()).to.equal(3)
         })
     })
 

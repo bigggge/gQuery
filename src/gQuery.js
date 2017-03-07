@@ -137,6 +137,7 @@
              * [].concat([1,2],3)=>[1,2,3]
              * concat方法的参数是一个元素，该元素会被直接插入到新数组中
              * 如果参数是一个数组，该数组的各个元素将被插入到新数组中
+             * apply: 该数组的各个元素将会依次成为被调用函数的各个参数
              *
              * @link http://www.cnblogs.com/front-end-ralph/p/4871332.html
              * @link https://github.com/hanzichi/underscore-analysis/issues/10
@@ -572,9 +573,10 @@
                     return $(filter.call(this, function (element) {
                         return core.matches(element, selector);
                     }))
-
                 },
-
+                add: function (selector, context) {
+                    return $(unique(this.concat($(selector, context))))
+                },
                 //判断当前元素集合中的第一个元素是否符合 css选择器。
                 is: function (selector) {
                     return this.length > 0 && core.matches(this[0], selector)

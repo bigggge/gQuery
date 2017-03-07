@@ -4,4 +4,3 @@
     - npm install
   script:
     - npm test
-    - codecov

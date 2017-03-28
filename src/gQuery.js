@@ -85,7 +85,7 @@
              */
             function type(obj) {
                 return obj == null ? String(obj) :
-                class2type[toString.call(obj)] || "object"
+                    class2type[toString.call(obj)] || "object"
             }
 
             function isFunction(value) {
@@ -799,7 +799,7 @@
             return mime && ( mime == htmlType ? 'html' :
                     mime == jsonType ? 'json' :
                         scriptTypeRE.test(mime) ? 'script' :
-                        xmlTypeRE.test(mime) && 'xml' ) || 'text'
+                            xmlTypeRE.test(mime) && 'xml' ) || 'text'
         }
 
         function appendQuery(url, query) {
@@ -1039,7 +1039,7 @@
             $.each(obj, function (key, value) {
                 type = $.type(value);
                 if (scope) key = traditional ? scope :
-                scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']';
+                    scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']';
                 // handle data in serializeArray() format
                 if (!scope && array) params.add(value.name, value.value);
                 // recurse into nested objects
@@ -1063,4 +1063,6 @@
 
 
     })(gQuery);
+
+    return gQuery;
 });
